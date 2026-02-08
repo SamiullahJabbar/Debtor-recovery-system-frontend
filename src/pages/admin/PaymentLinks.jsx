@@ -20,14 +20,21 @@ const PaymentLinks = () => {
 
     const fetchData = async () => {
         try {
+            console.log('PaymentLinks: Fetching data...');
             const [linksData, debtorsData] = await Promise.all([
                 paymentService.getPaymentLinks({ page_size: 100 }),
-                debtorService.getDebtors({ page_size: 1000, status: 'active' })
+                debtorService.getDebtors({ page_size: 1000 })
             ]);
+            console.log('PaymentLinks: Links data:', linksData);
+            console.log('PaymentLinks: Debtors data:', debtorsData);
+            console.log('PaymentLinks: Debtors results:', debtorsData.results);
+            console.log('PaymentLinks: Debtors count:', debtorsData.count);
             setLinks(linksData.results || []);
             setDebtors(debtorsData.results || []);
         } catch (error) {
             toast.error('Failed to load data');
+            console.error('PaymentLinks: Error loading data:', error);
+            console.error('PaymentLinks: Error response:', error.response);
         } finally {
             setLoading(false);
         }
@@ -193,21 +200,56 @@ const PaymentLinks = () => {
                 ) : (
                     <form onSubmit={handleGenerate} className="space-y-4">
                         <div>
-                            <label className="text-xs font-semibold text-gray-500 mb-1 block">Select Debtors * (Hold Ctrl/Cmd to select multiple)</label>
+                            <label className="text-xs font-semibold text-gray-500 mb-1 block">Select Debtors *</label>
+                            
+                            {/* Selected Debtors Display */}
+                            {form.debtor_ids.length > 0 && (
+                                <div className="mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                    <p className="text-xs font-semibold text-blue-700 mb-2">Selected Debtors ({form.debtor_ids.length}):</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {form.debtor_ids.map(debtorId => {
+                                            const debtor = debtors.find(d => d.id.toString() === debtorId.toString());
+                                            return debtor ? (
+                                                <div key={debtorId} className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg text-xs border border-blue-200">
+                                                    <span className="font-medium text-gray-700">{debtor.full_name}</span>
+                                                    <span className="text-gray-400">-</span>
+                                                    <span className="text-orange-600">${parseFloat(debtor.remaining_balance || 0).toLocaleString()}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setForm({ ...form, debtor_ids: form.debtor_ids.filter(id => id !== debtorId) })}
+                                                        className="ml-1 text-red-400 hover:text-red-600"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ) : null;
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Debtor Dropdown */}
                             <select
-                                multiple
-                                required
-                                value={form.debtor_ids}
-                                onChange={(e) => setForm({ ...form, debtor_ids: Array.from(e.target.selectedOptions, option => option.value) })}
-                                className="select-field h-32"
+                                value=""
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    if (selectedId && !form.debtor_ids.includes(selectedId)) {
+                                        setForm({ ...form, debtor_ids: [...form.debtor_ids, selectedId] });
+                                    }
+                                    e.target.value = ""; // Reset dropdown
+                                }}
+                                className="select-field"
                             >
-                                {debtors.map(d => (
-                                    <option key={d.id} value={d.id}>
-                                        {d.full_name} - ${parseFloat(d.remaining_balance || 0).toLocaleString()} remaining
-                                    </option>
-                                ))}
+                                <option value="">-- Click to add a debtor --</option>
+                                {debtors
+                                    .filter(d => !form.debtor_ids.includes(d.id.toString()))
+                                    .map(d => (
+                                        <option key={d.id} value={d.id}>
+                                            {d.full_name} - ${parseFloat(d.remaining_balance || 0).toLocaleString()} remaining
+                                        </option>
+                                    ))}
                             </select>
-                            <p className="text-xs text-gray-500 mt-1">{form.debtor_ids.length} debtor(s) selected</p>
+                            <p className="text-xs text-gray-500 mt-1">Click dropdown to add more debtors</p>
                         </div>
 
                         <div>

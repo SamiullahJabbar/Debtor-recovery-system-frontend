@@ -114,35 +114,99 @@ const TemplateManagement = () => {
             {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="skeleton h-32 rounded-xl" />)}</div>
                 : templates.length === 0 ? <div className="empty-state"><FiMail size={40} /><p className="mt-3 text-sm">No templates yet</p><button onClick={openAdd} className="btn-primary btn-sm mt-4"><FiPlus size={14} />Add First Template</button></div>
                     : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{templates.map((t, i) => (
-                        <div key={t.id} className="card-hover p-5 animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-sm shadow-orange-500/20">
-                                        {icon(t.type)}
+                        <div key={t.id} className="card-hover overflow-hidden animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
+                            {/* Template Preview Area - Letter Style */}
+                            <div className="bg-gray-50 p-4 border-b border-gray-100">
+                                {t.content_type === 'image' && t.image_url ? (
+                                    <div className="relative group cursor-pointer" onClick={() => openPreview(t)}>
+                                        <img 
+                                            src={t.image_url} 
+                                            alt={t.name} 
+                                            className="w-full h-48 object-cover rounded-lg shadow-sm"
+                                        />
+                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+                                            <FiEye className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={24} />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 text-sm">{t.name}</h3>
-                                        <div className="flex gap-1 mt-1">
-                                            <span className={`badge ${t.type === 'email' ? 'badge-blue' : t.type === 'sms' ? 'badge-green' : 'badge-purple'} text-[10px]`}>{t.type}</span>
-                                            <span className="badge badge-gray text-[10px]">{t.content_type === 'image' ? 'Image' : 'Text'}</span>
+                                ) : (
+                                    <div 
+                                        className="bg-white p-4 rounded-lg shadow-sm min-h-[180px] cursor-pointer border border-gray-200 hover:border-orange-300 transition-colors"
+                                        onClick={() => openPreview(t)}
+                                    >
+                                        {/* Letter Header */}
+                                        <div className="border-b border-gray-200 pb-2 mb-3">
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Template Preview</p>
+                                        </div>
+                                        
+                                        {/* Subject Line */}
+                                        {t.subject && (
+                                            <div className="mb-2">
+                                                <p className="text-[10px] text-gray-400">Subject:</p>
+                                                <p className="text-xs font-semibold text-gray-700 line-clamp-1">{t.subject}</p>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Content Preview */}
+                                        <div className="prose prose-xs max-w-none">
+                                            <p className="text-xs text-gray-600 whitespace-pre-wrap line-clamp-6 font-serif leading-relaxed">
+                                                {t.content || 'No content'}
+                                            </p>
+                                        </div>
+                                        
+                                        {/* Fade effect for long content */}
+                                        {t.content && t.content.length > 200 && (
+                                            <div className="h-8 bg-gradient-to-t from-white to-transparent mt-2"></div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Template Info */}
+                            <div className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                            t.type === 'email' ? 'bg-blue-100 text-blue-600' : 
+                                            t.type === 'sms' ? 'bg-green-100 text-green-600' : 
+                                            'bg-purple-100 text-purple-600'
+                                        }`}>
+                                            {icon(t.type)}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 text-sm">{t.name}</h3>
+                                            <p className="text-[10px] text-gray-500">{t.type.toUpperCase()} Template</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-1">
-                                    <button onClick={() => openPreview(t)} className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg"><FiEye size={12} /></button>
-                                    <button onClick={() => openEdit(t)} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 size={12} /></button>
-                                    <button onClick={() => handleDelete(t.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 size={12} /></button>
+                                
+                                {/* Badges */}
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`badge ${t.type === 'email' ? 'badge-blue' : t.type === 'sms' ? 'badge-green' : 'badge-purple'} text-[10px]`}>
+                                        {t.type}
+                                    </span>
+                                    <span className="badge badge-gray text-[10px]">
+                                        {t.content_type === 'image' ? '🖼️ Image' : '📝 Text'}
+                                    </span>
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                    <button 
+                                        onClick={() => openPreview(t)} 
+                                        className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-600 transition-colors"
+                                    >
+                                        <FiEye size={14} /> Preview
+                                    </button>
+                                    <div className="flex gap-1">
+                                        <button onClick={() => openEdit(t)} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                            <FiEdit2 size={14} />
+                                        </button>
+                                        <button onClick={() => handleDelete(t.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                            <FiTrash2 size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            {t.subject && <p className="text-xs text-gray-600 font-medium mb-2">Subject: {t.subject}</p>}
-                            {t.content_type === 'image' && t.image_url ? (
-                                <div className="bg-gray-100 rounded-lg p-2 flex items-center gap-2">
-                                    <FiImage size={16} className="text-gray-500" />
-                                    <span className="text-xs text-gray-600">Image template</span>
-                                </div>
-                            ) : (
-                                <p className="text-xs text-gray-400 line-clamp-3">{t.content}</p>
-                            )}
                         </div>
                     ))}</div>}
 

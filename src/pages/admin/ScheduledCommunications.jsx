@@ -3,12 +3,15 @@ import Layout from '../../components/common/Layout';
 import Modal from '../../components/common/Modal';
 import scheduledCommunicationService from '../../services/scheduledCommunicationService';
 import { userService } from '../../services/userService';
-import { FiPlus, FiSend, FiClock, FiRepeat, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { debtorService } from '../../services/debtorService';
+import { communicationService } from '../../services/communicationService';
+import { FiPlus, FiSend, FiClock, FiRepeat, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight, FiUsers } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 const ScheduledCommunications = () => {
     const [communications, setCommunications] = useState([]);
     const [users, setUsers] = useState([]);
+    const [debtors, setDebtors] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -16,6 +19,7 @@ const ScheduledCommunications = () => {
     const [form, setForm] = useState({
         template: '',
         recipients: [],
+        debtor_ids: [],
         send_date: '',
         is_recurring: false,
         frequency: 'daily',
@@ -29,14 +33,24 @@ const ScheduledCommunications = () => {
 
     const fetchData = async () => {
         try {
-            const [commsData, usersData] = await Promise.all([
+            console.log('ScheduledCommunications: Fetching data...');
+            const [commsData, usersData, templatesData, debtorsData] = await Promise.all([
                 scheduledCommunicationService.getScheduledCommunications(),
-                userService.getUsers({ page_size: 100 })
+                userService.getUsers({ page_size: 100 }),
+                communicationService.getTemplates(),
+                debtorService.getDebtors({ page_size: 1000 })
             ]);
+            console.log('ScheduledCommunications: Debtors data:', debtorsData);
+            console.log('ScheduledCommunications: Debtors results:', debtorsData.results);
+            console.log('ScheduledCommunications: Debtors count:', debtorsData.count);
             setCommunications(commsData.results || commsData || []);
             setUsers(usersData.results || []);
+            setTemplates(templatesData.results || templatesData || []);
+            setDebtors(debtorsData.results || []);
         } catch (error) {
             toast.error('Failed to load data');
+            console.error('ScheduledCommunications: Error loading data:', error);
+            console.error('ScheduledCommunications: Error response:', error.response);
         } finally {
             setLoading(false);
         }
@@ -45,11 +59,16 @@ const ScheduledCommunications = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const formData = {
+                ...form,
+                debtor_ids: form.debtor_ids.map(id => parseInt(id))
+            };
+            
             if (editItem) {
-                await scheduledCommunicationService.updateScheduledCommunication(editItem.id, form);
+                await scheduledCommunicationService.updateScheduledCommunication(editItem.id, formData);
                 toast.success('Updated successfully!');
             } else {
-                await scheduledCommunicationService.createScheduledCommunication(form);
+                await scheduledCommunicationService.createScheduledCommunication(formData);
                 toast.success('Scheduled successfully!');
             }
             setShowModal(false);
@@ -102,6 +121,7 @@ const ScheduledCommunications = () => {
         setForm({
             template: item.template,
             recipients: item.recipients.map(r => r.id),
+            debtor_ids: item.debtors_data?.map(d => d.id.toString()) || [],
             send_date: item.send_date,
             is_recurring: item.is_recurring,
             frequency: item.frequency || 'daily',
@@ -115,6 +135,7 @@ const ScheduledCommunications = () => {
         setForm({
             template: '',
             recipients: [],
+            debtor_ids: [],
             send_date: '',
             is_recurring: false,
             frequency: 'daily',
@@ -248,34 +269,79 @@ const ScheduledCommunications = () => {
             <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Edit Scheduled Communication' : 'Schedule New Communication'}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="label">Template</label>
+                        <label className="label">Template *</label>
                         <select
                             value={form.template}
                             onChange={(e) => setForm({ ...form, template: e.target.value })}
                             className="input-field"
                             required
                         >
-                            <option value="">Select template...</option>
-                            {/* Add template options here */}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="label">Recipients</label>
-                        <select
-                            multiple
-                            value={form.recipients}
-                            onChange={(e) => setForm({ ...form, recipients: Array.from(e.target.selectedOptions, option => option.value) })}
-                            className="input-field h-32"
-                            required
-                        >
-                            {users.map(user => (
-                                <option key={user.id} value={user.id}>
-                                    {user.full_name} ({user.email})
+                            <option value="">-- Select a template --</option>
+                            {templates.map(template => (
+                                <option key={template.id} value={template.id}>
+                                    {template.name} ({template.type})
                                 </option>
                             ))}
                         </select>
-                        <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                        {templates.length === 0 && (
+                            <p className="text-xs text-orange-600 mt-1">No templates available. Please create a template first.</p>
+                        )}
+                    </div>
+
+                    {/* Debtors Selection */}
+                    <div>
+                        <label className="label flex items-center gap-2">
+                            <FiUsers size={14} /> Select Debtors
+                        </label>
+                        
+                        {/* Selected Debtors Display */}
+                        {form.debtor_ids.length > 0 && (
+                            <div className="mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                <p className="text-xs font-semibold text-blue-700 mb-2">
+                                    Selected Debtors ({form.debtor_ids.length}):
+                                </p>
+                                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                                    {form.debtor_ids.map(debtorId => {
+                                        const debtor = debtors.find(d => d.id.toString() === debtorId.toString());
+                                        return debtor ? (
+                                            <div key={debtorId} className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg text-xs border border-blue-200">
+                                                <span className="font-medium text-gray-700">{debtor.full_name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setForm({ ...form, debtor_ids: form.debtor_ids.filter(id => id !== debtorId) })}
+                                                    className="ml-1 text-red-400 hover:text-red-600"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Debtor Dropdown */}
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                const selectedId = e.target.value;
+                                if (selectedId && !form.debtor_ids.includes(selectedId)) {
+                                    setForm({ ...form, debtor_ids: [...form.debtor_ids, selectedId] });
+                                }
+                                e.target.value = "";
+                            }}
+                            className="input-field"
+                        >
+                            <option value="">-- Click to add a debtor --</option>
+                            {debtors
+                                .filter(d => !form.debtor_ids.includes(d.id.toString()))
+                                .map(d => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.full_name} - ${parseFloat(d.remaining_balance || 0).toLocaleString()} remaining
+                                    </option>
+                                ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Click dropdown to add debtors to this communication</p>
                     </div>
 
                     <div>

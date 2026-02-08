@@ -17,6 +17,9 @@ export const debtorService = {
     deactivateDebtor: async (id) => (await api.post(`/admin/debtors/${id}/deactivate/`)).data,
     bulkImport: async (file) => { const fd = new FormData(); fd.append('csv_file', file); return (await api.post('/admin/debtors/bulk-import/', fd, { headers: { 'Content-Type': 'multipart/form-data' } })).data; },
 
+    // Status management
+    updateDebtorStatus: async (id, status) => (await api.post(`/admin/debtors/${id}/update-status/`, { status })).data,
+    
     // Global debtor management (Team Member)
     getGlobalDebtors: async (params = {}) => (await api.get('/admin/debtors/global/', { params })).data,
     assignToMe: async (debtorId) => (await api.post(`/admin/debtors/${debtorId}/assign-to-me/`)).data,

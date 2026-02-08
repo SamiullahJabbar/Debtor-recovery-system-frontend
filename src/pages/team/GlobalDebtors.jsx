@@ -18,12 +18,17 @@ const GlobalDebtors = () => {
     const fetchDebtors = async () => {
         try {
             setLoading(true);
+            console.log('GlobalDebtors: Fetching debtors...');
             const response = await debtorService.getGlobalDebtors({ search, page, page_size: 20 });
+            console.log('GlobalDebtors: Response:', response);
+            console.log('GlobalDebtors: Results:', response.results);
+            console.log('GlobalDebtors: Count:', response.count);
             setDebtors(response.results || []);
             setTotalCount(response.count || 0);
         } catch (error) {
             toast.error('Failed to load debtors');
-            console.error(error);
+            console.error('GlobalDebtors: Error:', error);
+            console.error('GlobalDebtors: Error response:', error.response);
         } finally {
             setLoading(false);
         }
@@ -63,8 +68,8 @@ const GlobalDebtors = () => {
             {/* Header */}
             <div className="page-header mb-6">
                 <div>
-                    <h1 className="page-title">All Debtors</h1>
-                    <p className="page-subtitle">{totalCount} total debtors</p>
+                    <h1 className="page-title">All Available Debtors</h1>
+                    <p className="page-subtitle">{totalCount} unassigned debtors available to claim</p>
                 </div>
             </div>
 
@@ -89,11 +94,16 @@ const GlobalDebtors = () => {
                 </div>
             ) : debtors.length === 0 ? (
                 <div className="card p-12 text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FiUser className="text-gray-400" size={24} />
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FiUser className="text-orange-500" size={28} />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Debtors Found</h3>
-                    <p className="text-gray-500 text-sm">All debtors have been assigned or no debtors match your search.</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Debtors Available</h3>
+                    <p className="text-gray-500 text-sm mb-2">
+                        {search ? 'No debtors match your search.' : 'There are no unassigned debtors at the moment.'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-4">
+                        All debtors have been assigned to team members.
+                    </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -153,20 +163,13 @@ const GlobalDebtors = () => {
                                     <span className={`badge ${getStatusBadge(debtor.status)} capitalize text-xs`}>
                                         {debtor.status.replace('_', ' ')}
                                     </span>
-                                    {debtor.assigned_collector && (
-                                        <span className="badge badge-blue text-xs">
-                                            Assigned to {debtor.assigned_collector.full_name}
-                                        </span>
-                                    )}
                                 </div>
-                                {!debtor.assigned_collector && (
-                                    <button
-                                        onClick={() => handleAssignToMe(debtor.id)}
-                                        className="btn-primary btn-xs"
-                                    >
-                                        Assign to Me
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleAssignToMe(debtor.id)}
+                                    className="btn-primary btn-xs"
+                                >
+                                    Assign to Me
+                                </button>
                             </div>
                         </div>
                     ))}
