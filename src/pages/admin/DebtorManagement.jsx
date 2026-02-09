@@ -30,7 +30,7 @@ const DebtorManagement = () => {
     const docRef = useRef(null);
 
     const [filters, setFilters] = useState({ search: '', status: '', client_id: '', assigned_collector_id: '', debtor_id: '', name: '', email: '', phone_number: '', is_active: '' });
-    const emptyForm = { full_name: '', company: '', date_of_birth: '', email: '', phone_number: '', home_number: '', work_number: '', other_number: '', address: '', loan_amount: '', due_date: '', client: '', assigned_collector: '', special_notes: '' };
+    const emptyForm = { full_name: '', company: '', date_of_birth: '', email: '', phone_number: '', home_number: '', work_number: '', other_number: '', address: '', loan_amount: '', due_date: '', client: '', assigned_collector: '', special_notes: '', status: 'new' };
     const [form, setForm] = useState(emptyForm);
     const [noteForm, setNoteForm] = useState({ note_type: 'outbound', content: '', communication_method: 'phone' });
     const [commForm, setCommForm] = useState({ communication_type: 'email', template_id: '', custom_message: '' });
@@ -93,6 +93,7 @@ const DebtorManagement = () => {
     const sendComm = async () => { try { await communicationService.sendCommunication(selected.id, commForm); toast.success('Sent!'); const r = await communicationService.getHistory(selected.id); setCommHistory(r.results || []); } catch { toast.error('Failed'); } };
     const setArrangement = async () => { try { await debtorService.setPaymentArrangement(selected.id, arrForm); toast.success('Arrangement set!'); const r = await debtorService.getDebtor(selected.id); setSelected(r.data); } catch { toast.error('Failed'); } };
     const handleBulk = async () => { const f = csvRef.current?.files[0]; if (!f) { toast.error('Select CSV'); return; } try { const r = await debtorService.bulkImport(f); toast.success(r.message || 'Imported'); setShowBulk(false); fetchAll(); } catch { toast.error('Failed'); } };
+    const updateStatus = async (newStatus) => { try { await debtorService.updateDebtorStatus(selected.id, newStatus); toast.success('Status updated!'); const r = await debtorService.getDebtor(selected.id); setSelected(r.data); fetchAll(); } catch { toast.error('Failed to update status'); } };
 
     const badge = s => ({ new: 'badge-blue', in_progress: 'badge-orange', settled: 'badge-green', closed: 'badge-gray' }[s] || 'badge-gray');
 
@@ -157,6 +158,7 @@ const DebtorManagement = () => {
                         <div><label className="block text-xs font-semibold text-gray-500 mb-1">Due Date *</label><input type="date" required value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} className="input-field" /></div>
                         <div><label className="block text-xs font-semibold text-gray-500 mb-1">Client *</label><select required value={form.client} onChange={e => setForm({ ...form, client: e.target.value })} className="select-field"><option value="">Select</option>{clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}</select></div>
                         <div><label className="block text-xs font-semibold text-gray-500 mb-1">Collector</label><select value={form.assigned_collector} onChange={e => setForm({ ...form, assigned_collector: e.target.value })} className="select-field"><option value="">Unassigned</option>{users.filter(u => u.role === 'team_member').map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}</select></div>
+                        <div><label className="block text-xs font-semibold text-gray-500 mb-1">Status</label><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="select-field"><option value="new">New</option><option value="in_progress">In Progress</option><option value="settled">Settled</option><option value="closed">Closed</option></select></div>
                         <div><label className="block text-xs font-semibold text-gray-500 mb-1">DOB</label><input type="date" value={form.date_of_birth} onChange={e => setForm({ ...form, date_of_birth: e.target.value })} className="input-field" /></div>
                         <div><label className="block text-xs font-semibold text-gray-500 mb-1">Other Phone</label><input value={form.other_number} onChange={e => setForm({ ...form, other_number: e.target.value })} className="input-field" /></div>
                         <div className="md:col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1">Address</label><textarea value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="textarea-field" rows="2" /></div>
@@ -176,7 +178,18 @@ const DebtorManagement = () => {
                 <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
                     <div className="flex items-center gap-4">
                         <div className="w-11 h-11 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center"><span className="text-white font-bold">{selected.full_name?.charAt(0)}</span></div>
-                        <div><h2 className="text-lg font-bold text-gray-900">{selected.full_name}</h2><p className="text-xs text-gray-400">{selected.debtor_id} · <span className={`${badge(selected.status)} text-[10px]`}>{selected.status?.replace('_', ' ')}</span></p></div>
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900">{selected.full_name}</h2>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs text-gray-400">{selected.debtor_id}</p>
+                                <select value={selected.status} onChange={(e) => updateStatus(e.target.value)} className="text-xs px-2 py-0.5 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                    <option value="new">New</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="settled">Settled</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div className="flex gap-2"><button onClick={openEditMode} className="btn-secondary btn-xs"><FiEdit2 size={12} />Edit</button><button onClick={() => setShowDetail(false)} className="btn-ghost btn-xs"><FiX size={16} /></button></div>
                 </div>

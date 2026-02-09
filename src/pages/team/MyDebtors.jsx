@@ -30,6 +30,7 @@ const MyDebtors = () => {
 
     const addNote = async()=>{if(!noteForm.content)return;try{await communicationService.addNote(sel.id,noteForm);toast.success('Added');setNoteForm({...noteForm,content:''});const r=await communicationService.getNotes(sel.id);setNotes(r.results||[]);}catch{toast.error('Failed');}};
     const send = async()=>{try{await communicationService.sendCommunication(sel.id,commForm);toast.success('Sent!');const r=await communicationService.getHistory(sel.id);setHistory(r.results||[]);}catch{toast.error('Failed');}};
+    const updateStatus = async(newStatus)=>{try{await debtorService.updateDebtorStatus(sel.id,newStatus);toast.success('Status updated!');const r=await debtorService.getDebtor(sel.id);setSel(r.data);const dr=await debtorService.getDebtors({page_size:100});setDebtors(dr.results||[]);}catch{toast.error('Failed');}};
 
     const filtered = debtors.filter(d=>d.full_name.toLowerCase().includes(search.toLowerCase())||d.debtor_id.toLowerCase().includes(search.toLowerCase()));
     const badge = s => ({new:'badge-blue',in_progress:'badge-orange',settled:'badge-green',closed:'badge-gray'}[s]||'badge-gray');
@@ -53,7 +54,18 @@ const MyDebtors = () => {
                 <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center"><span className="text-white font-bold">{sel.full_name?.charAt(0)}</span></div>
-                        <div><h2 className="font-bold text-gray-900">{sel.full_name}</h2><p className="text-xs text-gray-400">{sel.debtor_id}</p></div>
+                        <div>
+                            <h2 className="font-bold text-gray-900">{sel.full_name}</h2>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs text-gray-400">{sel.debtor_id}</p>
+                                <select value={sel.status} onChange={(e)=>updateStatus(e.target.value)} className="text-xs px-2 py-0.5 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                    <option value="new">New</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="settled">Settled</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <button onClick={()=>setShowDetail(false)} className="btn-ghost btn-xs"><FiX size={16}/></button>
                 </div>
