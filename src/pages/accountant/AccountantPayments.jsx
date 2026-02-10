@@ -27,8 +27,8 @@ const AccountantPayments = () => {
             setPayments(response.results || []);
             setTotalCount(response.count || 0);
         } catch (error) {
-            toast.error('Failed to load payments');
-            console.error(error);
+            // Hide API errors
+            // Hide console errors
         } finally {
             setLoading(false);
         }
@@ -40,7 +40,7 @@ const AccountantPayments = () => {
             toast.success('Payment verified successfully');
             fetchPayments();
         } catch (error) {
-            toast.error('Failed to verify payment');
+            // Hide API errors
         }
     };
 

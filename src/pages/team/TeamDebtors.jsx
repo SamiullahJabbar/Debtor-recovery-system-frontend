@@ -44,7 +44,7 @@ const TeamDebtors = () => {
             const r = await debtorService.getDebtors(params);
             setDebtors(r.results || []);
         } catch {
-            toast.error('Failed to fetch debtors');
+            // Hide API errors
         } finally {
             setLoading(false);
         }
@@ -95,7 +95,7 @@ const TeamDebtors = () => {
             const notesRes = await communicationService.getNotes(selectedDebtor.id);
             setNotes(notesRes.results || []);
         } catch (error) {
-            toast.error('Failed to add note');
+            // Hide API errors
         }
     };
 

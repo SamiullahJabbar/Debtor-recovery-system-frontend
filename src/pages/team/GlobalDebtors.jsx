@@ -20,15 +20,13 @@ const GlobalDebtors = () => {
             setLoading(true);
             console.log('GlobalDebtors: Fetching debtors...');
             const response = await debtorService.getGlobalDebtors({ search, page, page_size: 20 });
-            console.log('GlobalDebtors: Response:', response);
-            console.log('GlobalDebtors: Results:', response.results);
-            console.log('GlobalDebtors: Count:', response.count);
+            // Debug logs hidden for production
             setDebtors(response.results || []);
             setTotalCount(response.count || 0);
         } catch (error) {
-            toast.error('Failed to load debtors');
-            console.error('GlobalDebtors: Error:', error);
-            console.error('GlobalDebtors: Error response:', error.response);
+            // Hide API errors
+            // Hide console errors
+            // Hide console errors
         } finally {
             setLoading(false);
         }
@@ -40,7 +38,7 @@ const GlobalDebtors = () => {
             toast.success('Debtor assigned to you successfully!');
             fetchDebtors(); // Refresh list
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to assign debtor');
+            // Hide API errors
         }
     };
 

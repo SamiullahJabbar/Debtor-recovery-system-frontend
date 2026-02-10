@@ -20,17 +20,17 @@ const MyDebtors = () => {
     const [noteForm, setNoteForm] = useState({note_type:'outbound',content:'',communication_method:'phone'});
     const [commForm, setCommForm] = useState({communication_type:'email',template_id:'',custom_message:''});
 
-    useEffect(()=>{(async()=>{try{const r=await debtorService.getDebtors({page_size:100});setDebtors(r.results||[]);}catch{toast.error('Failed');}finally{setLoading(false);}})();},[]);
+    useEffect(()=>{(async()=>{try{const r=await debtorService.getDebtors({page_size:100});setDebtors(r.results||[]);}catch{/* Hide API errors */}finally{setLoading(false);}})();},[]);
 
     const view = async d => {
         try{const r=await debtorService.getDebtor(d.id);setSel(r.data);setTab('info');setShowDetail(true);
         const[n,h,t,p]=await Promise.all([communicationService.getNotes(d.id).catch(()=>({results:[]})),communicationService.getHistory(d.id).catch(()=>({results:[]})),communicationService.getTemplates().catch(()=>({results:[]})),paymentService.getDebtorPayments(d.id).catch(()=>({results:[]}))]);
-        setNotes(n.results||[]);setHistory(h.results||[]);setTemplates(t.results||[]);setPayments(p.results||[]);}catch{toast.error('Failed');}
+        setNotes(n.results||[]);setHistory(h.results||[]);setTemplates(t.results||[]);setPayments(p.results||[]);}catch{/* Hide API errors */}
     };
 
-    const addNote = async()=>{if(!noteForm.content)return;try{await communicationService.addNote(sel.id,noteForm);toast.success('Added');setNoteForm({...noteForm,content:''});const r=await communicationService.getNotes(sel.id);setNotes(r.results||[]);}catch{toast.error('Failed');}};
-    const send = async()=>{try{await communicationService.sendCommunication(sel.id,commForm);toast.success('Sent!');const r=await communicationService.getHistory(sel.id);setHistory(r.results||[]);}catch{toast.error('Failed');}};
-    const updateStatus = async(newStatus)=>{try{await debtorService.updateDebtorStatus(sel.id,newStatus);toast.success('Status updated!');const r=await debtorService.getDebtor(sel.id);setSel(r.data);const dr=await debtorService.getDebtors({page_size:100});setDebtors(dr.results||[]);}catch{toast.error('Failed');}};
+    const addNote = async()=>{if(!noteForm.content)return;try{await communicationService.addNote(sel.id,noteForm);toast.success('Added');setNoteForm({...noteForm,content:''});const r=await communicationService.getNotes(sel.id);setNotes(r.results||[]);}catch{/* Hide API errors */}};
+    const send = async()=>{try{await communicationService.sendCommunication(sel.id,commForm);toast.success('Sent!');const r=await communicationService.getHistory(sel.id);setHistory(r.results||[]);}catch{/* Hide API errors */}};
+    const updateStatus = async(newStatus)=>{try{await debtorService.updateDebtorStatus(sel.id,newStatus);toast.success('Status updated!');const r=await debtorService.getDebtor(sel.id);setSel(r.data);const dr=await debtorService.getDebtors({page_size:100});setDebtors(dr.results||[]);}catch{/* Hide API errors */}};
 
     const filtered = debtors.filter(d=>d.full_name.toLowerCase().includes(search.toLowerCase())||d.debtor_id.toLowerCase().includes(search.toLowerCase()));
     const badge = s => ({new:'badge-blue',in_progress:'badge-orange',settled:'badge-green',closed:'badge-gray'}[s]||'badge-gray');

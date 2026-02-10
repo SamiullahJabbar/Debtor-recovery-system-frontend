@@ -39,8 +39,8 @@ const TeamDashboard = () => {
             setDebtors(debtorsData.results || []);
             setActivities(activitiesData.slice(0, 10));
         } catch (error) {
-            toast.error('Failed to load dashboard data');
-            console.error(error);
+            // Hide API errors
+            // Hide console errors
         } finally {
             setLoading(false);
         }
@@ -69,61 +69,71 @@ const TeamDashboard = () => {
                 <button onClick={fetchData} className="btn-ghost btn-sm">Refresh Now</button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="card-hover p-5 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiUsers className="text-blue-600" size={24} />
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-200 px-2 py-1 rounded-full">Assigned</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-blue-900">{performance?.performance?.total_debtors || 0}</h3>
-                    <p className="text-sm text-blue-700 mt-1">Total Debtors</p>
-                    <p className="text-xs text-blue-600 mt-2">
-                        {performance?.performance?.active_debtors || 0} active, {performance?.performance?.settled_debtors || 0} settled
-                    </p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiDollarSign className="text-green-600" size={24} />
-                        <span className="text-xs font-semibold text-green-600 bg-green-200 px-2 py-1 rounded-full">Recovered</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-green-900">
-                        ${(performance?.performance?.total_recovered_amount || 0).toLocaleString()}
-                    </h3>
-                    <p className="text-sm text-green-700 mt-1">Total Recovered</p>
-                    <p className="text-xs text-green-600 mt-2">
-                        {(performance?.performance?.recovery_rate || 0).toFixed(1)}% recovery rate
-                    </p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiTrendingUp className="text-orange-600" size={24} />
-                        <span className="text-xs font-semibold text-orange-600 bg-orange-200 px-2 py-1 rounded-full">Pending</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-orange-900">
-                        ${(performance?.performance?.total_pending_amount || 0).toLocaleString()}
-                    </h3>
-                    <p className="text-sm text-orange-700 mt-1">Pending Amount</p>
-                    <p className="text-xs text-orange-600 mt-2">
-                        From {performance?.performance?.active_debtors || 0} active debtors
-                    </p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiActivity className="text-purple-600" size={24} />
-                        <span className="text-xs font-semibold text-purple-600 bg-purple-200 px-2 py-1 rounded-full">Comms</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-purple-900">
-                        {performance?.communications?.total || 0}
-                    </h3>
-                    <p className="text-sm text-purple-700 mt-1">Total Communications</p>
-                    <p className="text-xs text-purple-600 mt-2">
-                        {performance?.communications?.emails_sent || 0} emails, {performance?.communications?.sms_sent || 0} SMS
-                    </p>
-                </div>
+            {/* Stats Cards - Admin Dashboard Style */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[
+                    { 
+                        label: 'Total Debtors', 
+                        value: performance?.performance?.total_debtors || 0, 
+                        icon: FiUsers, 
+                        bgColor: 'bg-blue-50', 
+                        textColor: 'text-blue-600', 
+                        valueColor: 'text-blue-900',
+                        shadow: 'shadow-blue-500/20',
+                        subtitle: `${performance?.performance?.active_debtors || 0} active, ${performance?.performance?.settled_debtors || 0} settled`
+                    },
+                    { 
+                        label: 'Total Recovered', 
+                        value: `$${(performance?.performance?.total_recovered_amount || 0).toLocaleString()}`, 
+                        icon: FiDollarSign, 
+                        bgColor: 'bg-green-50', 
+                        textColor: 'text-green-600', 
+                        valueColor: 'text-green-900',
+                        shadow: 'shadow-green-500/20',
+                        subtitle: `${(performance?.performance?.recovery_rate || 0).toFixed(1)}% recovery rate`
+                    },
+                    { 
+                        label: 'Pending Amount', 
+                        value: `$${(performance?.performance?.total_pending_amount || 0).toLocaleString()}`, 
+                        icon: FiTrendingUp, 
+                        bgColor: 'bg-orange-50', 
+                        textColor: 'text-orange-600', 
+                        valueColor: 'text-orange-900',
+                        shadow: 'shadow-orange-500/20',
+                        subtitle: `From ${performance?.performance?.active_debtors || 0} active debtors`
+                    },
+                    { 
+                        label: 'Communications', 
+                        value: performance?.communications?.total || 0, 
+                        icon: FiActivity, 
+                        bgColor: 'bg-purple-50', 
+                        textColor: 'text-purple-600', 
+                        valueColor: 'text-purple-900',
+                        shadow: 'shadow-purple-500/20',
+                        subtitle: `${performance?.communications?.emails_sent || 0} emails, ${performance?.communications?.sms_sent || 0} SMS`
+                    }
+                ].map((stat, i) => {
+                    const IconComponent = stat.icon;
+                    return (
+                        <div key={i} className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-200 hover:border-gray-200 animate-slideUp`} style={{ animationDelay: `${i * 100}ms` }}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className={`w-14 h-14 ${stat.bgColor} rounded-2xl flex items-center justify-center ${stat.shadow}`}>
+                                    <IconComponent size={24} className={stat.textColor} />
+                                </div>
+                                <div className={`px-3 py-1 ${stat.bgColor} rounded-full`}>
+                                    <span className={`text-xs font-semibold ${stat.textColor}`}>Live</span>
+                                </div>
+                            </div>
+                            <h3 className={`text-3xl font-bold mb-1 ${stat.valueColor}`}>{stat.value}</h3>
+                            <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                            <p className={`text-xs mt-2 ${stat.textColor.replace('600', '500')}`}>{stat.subtitle}</p>
+                            <div className="mt-3 flex items-center gap-2">
+                                <div className={`w-1.5 h-1.5 ${stat.bgColor} rounded-full`}></div>
+                                <span className="text-xs text-gray-500">Updated now</span>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Charts Section */}

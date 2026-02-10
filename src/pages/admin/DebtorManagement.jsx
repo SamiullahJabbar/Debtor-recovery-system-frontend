@@ -42,7 +42,7 @@ const DebtorManagement = () => {
         try {
             const [dr, cr, ur] = await Promise.all([debtorService.getDebtors({ page_size: 200 }), clientService.getClients({ page_size: 200 }), userService.getUsers({ page_size: 100 }).catch(() => ({ results: [] }))]);
             setDebtors(dr.results || []); setClients(cr.results || []); setUsers(ur.results || []);
-        } catch { toast.error('Failed to load data'); } finally { setLoading(false); }
+        } catch { /* Hide API errors */ } finally { setLoading(false); }
     };
 
     const fetchFiltered = async () => {
@@ -64,7 +64,7 @@ const DebtorManagement = () => {
         Object.entries(form).forEach(([k, v]) => { if (v) fd.append(k, v); });
         docs.forEach(d => fd.append('documents', d));
         try { await debtorService.createDebtor(fd); toast.success('Debtor created!'); setShowAdd(false); fetchAll(); }
-        catch (err) { toast.error(err.response?.data?.message || JSON.stringify(err.response?.data?.errors) || 'Failed'); }
+        catch (err) { /* Hide API errors */ }
     };
 
     const handleUpdate = async (e) => {
@@ -73,7 +73,7 @@ const DebtorManagement = () => {
         Object.entries(form).forEach(([k, v]) => { if (v) fd.append(k, v); });
         docs.forEach(d => fd.append('documents', d));
         try { await debtorService.updateDebtor(selected.id, fd); toast.success('Updated!'); const r = await debtorService.getDebtor(selected.id); setSelected(r.data); setEditMode(false); fetchAll(); }
-        catch { toast.error('Failed'); }
+        catch { /* Hide API errors */ }
     };
 
     const viewDebtor = async (d) => {
@@ -81,7 +81,7 @@ const DebtorManagement = () => {
             const r = await debtorService.getDebtor(d.id); setSelected(r.data); setTab('info'); setShowDetail(true); setEditMode(false);
             const [nr, hr, tr, pr] = await Promise.all([communicationService.getNotes(d.id).catch(() => ({ results: [] })), communicationService.getHistory(d.id).catch(() => ({ results: [] })), communicationService.getTemplates().catch(() => ({ results: [] })), paymentService.getDebtorPayments(d.id).catch(() => ({ results: [] }))]);
             setNotes(nr.results || nr || []); setCommHistory(hr.results || hr || []); setTemplates(tr.results || tr || []); setPayments(pr.results || pr || []);
-        } catch { toast.error('Failed'); }
+        } catch { /* Hide API errors */ }
     };
 
     const openEditMode = () => {

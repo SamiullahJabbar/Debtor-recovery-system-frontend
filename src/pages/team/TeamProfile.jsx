@@ -21,7 +21,7 @@ const TeamProfile = () => {
             toast.success('Profile updated successfully!');
             setEditMode(false);
         } catch (error) {
-            toast.error('Failed to update profile');
+            // Hide API errors
         }
     };
 

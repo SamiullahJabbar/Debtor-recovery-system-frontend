@@ -24,8 +24,8 @@ const TeamPayments = () => {
             const r = await paymentService.getMyAssignedPayments(params);
             setPayments(r.results || []);
         } catch (err) {
-            console.error('Payment fetch error:', err);
-            toast.error(err.response?.data?.message || 'Failed to fetch payments');
+            // Hide console errors
+            // Hide API errors
         } finally {
             setLoading(false);
         }

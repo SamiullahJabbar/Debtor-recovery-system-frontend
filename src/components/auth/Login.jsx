@@ -30,9 +30,11 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 p-12 flex-col justify-between relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10"><div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl" /><div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl" /></div>
                 <div className="relative z-10">
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8"><span className="text-white font-bold text-2xl">D</span></div>
-                    <h1 className="text-4xl font-bold text-white mb-3">Debt Recovery</h1>
-                    <p className="text-white/80 text-lg">Management System</p>
+                    <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+                        <img src="/src/assets/images/logo.png" alt="Aussie Recoveries" className="w-20 h-20 object-contain" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-white mb-3">AUSSIE RECOVERIES</h1>
+                    <p className="text-white/80 text-lg">Professional Debt Recovery Solutions</p>
                 </div>
                 <div className="relative z-10 space-y-4">
                     {['Track & manage debtors efficiently', 'Real-time payment monitoring', 'Automated communication templates'].map((t,i) => (
@@ -44,7 +46,7 @@ const Login = () => {
             {/* Right - Form */}
             <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
                 <div className="w-full max-w-md">
-                    <div className="lg:hidden mb-10"><div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 mb-4"><span className="text-white font-bold text-xl">D</span></div><h1 className="text-2xl font-bold text-gray-900">Debt Recovery</h1></div>
+                    <div className="lg:hidden mb-10"><div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mb-4 border border-gray-200"><img src="/src/assets/images/logo.png" alt="Aussie Recoveries" className="w-12 h-12 object-contain" /></div><h1 className="text-2xl font-bold text-gray-900">AUSSIE RECOVERIES</h1></div>
 
                     <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
                     <p className="text-gray-500 text-sm mb-8">Sign in to your account</p>

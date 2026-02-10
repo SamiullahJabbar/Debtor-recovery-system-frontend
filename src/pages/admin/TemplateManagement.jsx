@@ -17,7 +17,7 @@ const TemplateManagement = () => {
     const fileRef = useRef(null);
 
     useEffect(() => { fetch(); }, []);
-    const fetch = async () => { try { const r = await communicationService.getTemplates(); setTemplates(r.results || r || []); } catch { toast.error('Failed'); } finally { setLoading(false); } };
+    const fetch = async () => { try { const r = await communicationService.getTemplates(); setTemplates(r.results || r || []); } catch { /* Hide API errors */ } finally { setLoading(false); } };
 
     const openAdd = () => {
         setEdit(null);
@@ -89,7 +89,7 @@ const TemplateManagement = () => {
             const errorMsg = err.response?.data?.errors?.template_image?.[0] ||
                 err.response?.data?.message ||
                 'Failed to save template';
-            toast.error(errorMsg);
+            // Hide API errors
         }
     };
 

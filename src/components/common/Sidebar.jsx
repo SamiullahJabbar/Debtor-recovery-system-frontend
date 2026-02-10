@@ -45,10 +45,10 @@ const Sidebar = () => {
             {/* Logo */}
             <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-                        <span className="text-white font-bold text-lg">D</span>
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-200 flex-shrink-0">
+                        <img src="/src/assets/images/logo.png" alt="Aussie Recoveries" className="w-8 h-8 object-contain" />
                     </div>
-                    {!collapsed && <div className="animate-slideIn"><h1 className="font-bold text-gray-900 text-sm">Debt Recovery</h1><p className="text-[10px] text-gray-400 font-medium">Management System</p></div>}
+                    {!collapsed && <div className="animate-slideIn"><h1 className="font-bold text-gray-900 text-sm">AUSSIE RECOVERIES</h1><p className="text-[10px] text-gray-400 font-medium">Debt Recovery Solutions</p></div>}
                 </div>
             </div>
 

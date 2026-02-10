@@ -80,8 +80,8 @@ const AccountantReports = () => {
                 monthly_data: monthlyData
             });
         } catch (error) {
-            toast.error('Failed to load report data');
-            console.error(error);
+            // Hide API errors
+            // Hide console errors
         } finally {
             setLoading(false);
         }

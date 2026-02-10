@@ -17,10 +17,6 @@ const AccountantDashboard = () => {
     });
     const [recentPayments, setRecentPayments] = useState([]);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         try {
             const paymentsData = await paymentService.getPayments({ page_size: 100 });
@@ -41,12 +37,25 @@ const AccountantDashboard = () => {
 
             setRecentPayments(payments.slice(0, 10));
         } catch (error) {
-            toast.error('Failed to load dashboard data');
-            console.error(error);
+            // Hide API errors
+            // Hide console errors
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchData();
+        
+        // Auto-refresh every 10 seconds
+        const interval = setInterval(fetchData, 10000);
+        
+        // Also refresh when tab becomes visible again
+        const handleVisibility = () => { if (!document.hidden) fetchData(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        
+        return () => { clearInterval(interval); document.removeEventListener('visibilitychange', handleVisibility); };
+    }, []);
 
     const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
@@ -68,56 +77,79 @@ const AccountantDashboard = () => {
     return (
         <Layout>
             {/* Header */}
-            <div className="page-header mb-6">
+            <div className="page-header mb-6 flex items-center justify-between">
                 <div>
                     <h1 className="page-title">Accountant Dashboard</h1>
                     <p className="page-subtitle">Payment verification and financial overview</p>
                 </div>
+                <button onClick={fetchData} className="btn-ghost btn-sm">Refresh Now</button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="card-hover p-5 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiDollarSign className="text-blue-600" size={24} />
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-200 px-2 py-1 rounded-full">Total</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-blue-900">{stats.total_payments}</h3>
-                    <p className="text-sm text-blue-700 mt-1">Total Payments</p>
-                    <p className="text-xs text-blue-600 mt-2">${stats.total_amount.toLocaleString()}</p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiCheckCircle className="text-green-600" size={24} />
-                        <span className="text-xs font-semibold text-green-600 bg-green-200 px-2 py-1 rounded-full">Verified</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-green-900">{stats.verified_payments}</h3>
-                    <p className="text-sm text-green-700 mt-1">Verified Payments</p>
-                    <p className="text-xs text-green-600 mt-2">${stats.verified_amount.toLocaleString()}</p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiClock className="text-orange-600" size={24} />
-                        <span className="text-xs font-semibold text-orange-600 bg-orange-200 px-2 py-1 rounded-full">Pending</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-orange-900">{stats.pending_payments}</h3>
-                    <p className="text-sm text-orange-700 mt-1">Pending Verification</p>
-                    <p className="text-xs text-orange-600 mt-2">${stats.pending_amount.toLocaleString()}</p>
-                </div>
-
-                <div className="card-hover p-5 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <FiTrendingUp className="text-purple-600" size={24} />
-                        <span className="text-xs font-semibold text-purple-600 bg-purple-200 px-2 py-1 rounded-full">Rate</span>
-                    </div>
-                    <h3 className="text-3xl font-bold text-purple-900">
-                        {stats.total_payments > 0 ? ((stats.verified_payments / stats.total_payments) * 100).toFixed(1) : 0}%
-                    </h3>
-                    <p className="text-sm text-purple-700 mt-1">Verification Rate</p>
-                    <p className="text-xs text-purple-600 mt-2">Of all payments</p>
-                </div>
+            {/* Stats Cards - Admin Dashboard Style */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[
+                    { 
+                        label: 'Total Payments', 
+                        value: stats.total_payments, 
+                        icon: FiDollarSign, 
+                        bgColor: 'bg-blue-50', 
+                        textColor: 'text-blue-600', 
+                        valueColor: 'text-blue-900',
+                        shadow: 'shadow-blue-500/20',
+                        subtitle: `$${stats.total_amount.toLocaleString()}`
+                    },
+                    { 
+                        label: 'Verified Payments', 
+                        value: stats.verified_payments, 
+                        icon: FiCheckCircle, 
+                        bgColor: 'bg-green-50', 
+                        textColor: 'text-green-600', 
+                        valueColor: 'text-green-900',
+                        shadow: 'shadow-green-500/20',
+                        subtitle: `$${stats.verified_amount.toLocaleString()}`
+                    },
+                    { 
+                        label: 'Pending Verification', 
+                        value: stats.pending_payments, 
+                        icon: FiClock, 
+                        bgColor: 'bg-orange-50', 
+                        textColor: 'text-orange-600', 
+                        valueColor: 'text-orange-900',
+                        shadow: 'shadow-orange-500/20',
+                        subtitle: `$${stats.pending_amount.toLocaleString()}`
+                    },
+                    { 
+                        label: 'Verification Rate', 
+                        value: `${stats.total_payments > 0 ? ((stats.verified_payments / stats.total_payments) * 100).toFixed(1) : 0}%`, 
+                        icon: FiTrendingUp, 
+                        bgColor: 'bg-purple-50', 
+                        textColor: 'text-purple-600', 
+                        valueColor: 'text-purple-900',
+                        shadow: 'shadow-purple-500/20',
+                        subtitle: 'Of all payments'
+                    }
+                ].map((stat, i) => {
+                    const IconComponent = stat.icon;
+                    return (
+                        <div key={i} className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-200 hover:border-gray-200 animate-slideUp`} style={{ animationDelay: `${i * 100}ms` }}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className={`w-14 h-14 ${stat.bgColor} rounded-2xl flex items-center justify-center ${stat.shadow}`}>
+                                    <IconComponent size={24} className={stat.textColor} />
+                                </div>
+                                <div className={`px-3 py-1 ${stat.bgColor} rounded-full`}>
+                                    <span className={`text-xs font-semibold ${stat.textColor}`}>Live</span>
+                                </div>
+                            </div>
+                            <h3 className={`text-3xl font-bold mb-1 ${stat.valueColor}`}>{stat.value}</h3>
+                            <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                            <p className={`text-xs mt-2 ${stat.textColor.replace('600', '500')}`}>{stat.subtitle}</p>
+                            <div className="mt-3 flex items-center gap-2">
+                                <div className={`w-1.5 h-1.5 ${stat.bgColor} rounded-full`}></div>
+                                <span className="text-xs text-gray-500">Updated now</span>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Charts */}

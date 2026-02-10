@@ -19,8 +19,7 @@ const TeamPaymentLinks = () => {
         setForm(f => ({ ...f, debtor_id: r.results?.[0]?.id || r.data?.[0]?.id }));
       }
     } catch (e) {
-      console.error(e);
-      toast.error('Failed to load assigned debtors');
+      // Hide API error notifications
     }
   };
 
@@ -29,8 +28,7 @@ const TeamPaymentLinks = () => {
       const r = await paymentService.getMyPaymentLinks({ page_size: 100 });
       setLinks(r.results || []);
     } catch (e) {
-      console.error(e);
-      toast.error('Failed to load payment links');
+      // Hide API error notifications
     } finally {
       setLoading(false);
     }

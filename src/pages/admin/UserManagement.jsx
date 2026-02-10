@@ -16,7 +16,7 @@ const UserManagement = () => {
     const [form, setForm] = useState({ full_name: '', email: '', phone_number: '', role: 'team_member', job_title: '', password: '' });
 
     useEffect(() => { fetch(); }, []);
-    const fetch = async () => { try { const r = await userService.getUsers({ page_size: 100 }); setUsers(r.results || []); } catch { toast.error('Failed'); } finally { setLoading(false); } };
+    const fetch = async () => { try { const r = await userService.getUsers({ page_size: 100 }); setUsers(r.results || []); } catch { /* Hide API errors */ } finally { setLoading(false); } };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,12 +24,12 @@ const UserManagement = () => {
             if (editUser) { await userService.updateUser(editUser.id, form); toast.success('Updated!'); }
             else { await userService.createUser(form); toast.success('Created!'); }
             setShowModal(false); setEditUser(null); fetch();
-        } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
+        } catch (err) { /* Hide API errors */ }
     };
 
     const openEdit = u => { setEditUser(u); setForm({ full_name: u.full_name, email: u.email, phone_number: u.phone_number || '', role: u.role, job_title: u.job_title || '', password: '' }); setShowModal(true); };
     const openAdd = () => { setEditUser(null); setForm({ full_name: '', email: '', phone_number: '', role: 'team_member', job_title: '', password: '' }); setShowModal(true); };
-    const handleDelete = async id => { if (!confirm('Delete?')) return; try { await userService.deleteUser(id); toast.success('Deleted'); fetch(); } catch { toast.error('Failed'); } };
+    const handleDelete = async id => { if (!confirm('Delete?')) return; try { await userService.deleteUser(id); toast.success('Deleted'); fetch(); } catch { /* Hide API errors */ } };
 
     const handleCardClick = (user) => {
         if (user.role === 'team_member') {

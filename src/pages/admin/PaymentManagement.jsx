@@ -12,9 +12,9 @@ const PaymentManagement = () => {
 
     useEffect(() => { fetch(); }, [filter]);
     useEffect(() => { const i=setInterval(fetch,30000); return ()=>clearInterval(i); }, []);
-    const fetch = async () => { try { const r = await paymentService.getPaymentRequests({status:filter||undefined,page_size:100}); setPayments(r.results||[]); setSummary(r.summary||{}); } catch{toast.error('Failed');} finally{setLoading(false);} };
+    const fetch = async () => { try { const r = await paymentService.getPaymentRequests({status:filter||undefined,page_size:100}); setPayments(r.results||[]); setSummary(r.summary||{}); } catch{/* Hide API errors */} finally{setLoading(false);} };
 
-    const verify = async (id, action, reason='') => { try { await paymentService.verifyPayment(id, {action,reason,notes:reason}); toast.success(action==='approve'?'Approved!':'Rejected'); fetch(); } catch{toast.error('Failed');} };
+    const verify = async (id, action, reason='') => { try { await paymentService.verifyPayment(id, {action,reason,notes:reason}); toast.success(action==='approve'?'Payment Approved':'Payment Rejected'); fetch(); } catch{/* Hide API errors */} };
 
     const stats = [
         {label:'Verified',value:summary.total_verified||0,color:'text-emerald-600',bg:'bg-emerald-50'},

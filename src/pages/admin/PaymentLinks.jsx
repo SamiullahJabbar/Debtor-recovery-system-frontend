@@ -41,7 +41,7 @@ const PaymentLinks = () => {
             setLinks(linksData.results || []);
             setDebtors(debtorsData.results || []);
         } catch (error) {
-            toast.error('Failed to load data');
+            // Hide API errors
             console.error('PaymentLinks: Error loading data:', error);
             console.error('PaymentLinks: Error response:', error.response);
         } finally {

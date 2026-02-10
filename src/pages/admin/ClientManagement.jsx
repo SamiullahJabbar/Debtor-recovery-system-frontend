@@ -33,7 +33,7 @@ const ClientManagement = () => {
             Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
             const r = await clientService.getClients(params);
             setClients(r.results || []);
-        } catch { toast.error('Failed to fetch clients'); }
+        } catch { /* Hide API errors */ }
         finally { setLoading(false); }
     };
 
@@ -48,7 +48,7 @@ const ClientManagement = () => {
             setShowDetailModal(true);
             const debtors = await debtorService.getDebtors({ client_id: client.id, page_size: 100 });
             setClientDebtors(debtors.results || []);
-        } catch { toast.error('Failed to load client details'); }
+        } catch { /* Hide API errors */ }
     };
 
     const handleSubmit = async (e) => {
@@ -60,7 +60,7 @@ const ClientManagement = () => {
             if (editClient) { await clientService.updateClient(editClient.id, fd); toast.success('Client updated!'); }
             else { await clientService.createClient(fd); toast.success('Client created!'); }
             setShowModal(false); fetchClients();
-        } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
+        } catch (err) { /* Hide API errors */ }
     };
 
     const confirmDelete = (client) => { setDeleteTarget(client); setShowDeleteConfirm(true); };
@@ -73,14 +73,14 @@ const ClientManagement = () => {
             setShowDeleteConfirm(false);
             setDeleteTarget(null);
             fetchClients();
-        } catch { toast.error('Failed to delete client'); }
+        } catch { /* Hide API errors */ }
     };
 
     const handleBulkImport = async () => {
         const file = csvRef.current?.files[0];
         if (!file) { toast.error('Select a CSV file'); return; }
         try { const r = await clientService.bulkImport(file); toast.success(r.message || `Imported: ${r.summary?.successful} clients`); setShowBulkModal(false); fetchClients(); }
-        catch { toast.error('Import failed'); }
+        catch { /* Hide API errors */ }
     };
 
     return (
