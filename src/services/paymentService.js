@@ -13,6 +13,7 @@ export const paymentService = {
     // Payment links
     generatePaymentLink: async (data) => (await api.post('/payments/generate-link/', data)).data,
     getPaymentLinks: async (params = {}) => (await api.get('/payments/links/', { params })).data,
+    getMyPaymentLinks: async (params = {}) => (await api.get('/payments/links/my/', { params })).data,
     getPaymentLink: async (linkId) => (await api.get(`/payments/links/${linkId}/`)).data,
     getPaymentLinkAnalytics: async (linkId) => (await api.get(`/payments/links/${linkId}/analytics/`)).data,
 

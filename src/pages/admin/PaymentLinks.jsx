@@ -11,8 +11,17 @@ const PaymentLinks = () => {
     const [debtors, setDebtors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState({ debtor_ids: [], amount: '', description: '', expires_in_days: 7 });
+    const [form, setForm] = useState({
+        debtor_ids: [],
+        amount: '',
+        description: '',
+        expires_in_days: 7,
+        send_email: true,  // Default to true
+        send_sms: false    // Default to false
+    });
     const [generatedLink, setGeneratedLink] = useState(null);
+    const [emailResults, setEmailResults] = useState([]);
+    const [smsResults, setSmsResults] = useState([]);
 
     useEffect(() => {
         fetchData();
@@ -51,16 +60,28 @@ const PaymentLinks = () => {
                 debtor_ids: form.debtor_ids.map(id => parseInt(id)),
                 amount: parseFloat(form.amount),
                 description: form.description,
-                expires_in_days: parseInt(form.expires_in_days)
+                expires_in_days: parseInt(form.expires_in_days),
+                send_email: form.send_email,
+                send_sms: form.send_sms
             });
             setGeneratedLink(Array.isArray(response.data) ? response.data : [response.data]);
+            setEmailResults(response.email_results || []);
+            setSmsResults(response.sms_results || []);
             toast.success(`${form.debtor_ids.length} payment link(s) generated!`);
-            setForm({ debtor_ids: [], amount: '', description: '', expires_in_days: 7 });
+            setForm({
+                debtor_ids: [],
+                amount: '',
+                description: '',
+                expires_in_days: 7,
+                send_email: true,
+                send_sms: false
+            });
             fetchData();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to generate link');
         }
     };
+
 
     const copyLink = (link) => {
         navigator.clipboard.writeText(link);
@@ -69,12 +90,22 @@ const PaymentLinks = () => {
 
     const getStatusBadge = (status) => {
         const badges = {
-            active: 'badge-green',
-            paid: 'badge-blue',
+            active: 'badge-yellow',
+            completed: 'badge-green',
             expired: 'badge-red',
             cancelled: 'badge-gray'
         };
         return badges[status] || 'badge-gray';
+    };
+
+    const getStatusText = (status) => {
+        const statusTexts = {
+            active: 'Pending',
+            completed: 'Paid',
+            expired: 'Expired',
+            cancelled: 'Cancelled'
+        };
+        return statusTexts[status] || status;
     };
 
     return (
@@ -104,66 +135,113 @@ const PaymentLinks = () => {
                     </button>
                 </div>
             ) : (
-                <div className="space-y-3">
-                    {links.map((link, i) => (
-                        <div key={link.id} className="card-hover p-5 animate-slideUp" style={{ animationDelay: `${i * 20}ms` }}>
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                                            <FiDollarSign size={18} className="text-white" />
+                <div className="space-y-4">
+                    {links.map((link, i) => {
+                        const isExpired = new Date(link.expires_at) < new Date() && link.status === 'active';
+                        const daysUntilExpiry = Math.ceil((new Date(link.expires_at) - new Date()) / (1000 * 60 * 60 * 24));
+                        const isExpiringSoon = daysUntilExpiry <= 2 && daysUntilExpiry > 0 && link.status === 'active';
+                        
+                        return (
+                            <div key={link.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100 animate-slideUp" style={{ animationDelay: `${i * 20}ms` }}>
+                                {/* Header Section */}
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-3 border-b border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                <FiDollarSign size={22} className="text-white" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 text-lg">{link.debtor_details?.full_name || link.debtor?.full_name || 'Unknown'}</h3>
+                                                <p className="text-xs text-gray-500 font-medium">{link.debtor_details?.debtor_id || link.debtor?.debtor_id || 'N/A'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900">{link.debtor?.full_name || 'Unknown'}</h3>
-                                            <p className="text-xs text-gray-500">{link.debtor?.debtor_id || 'N/A'}</p>
+                                        <div className="text-right">
+                                            <p className="text-2xl font-bold text-gray-900">${parseFloat(link.amount || 0).toLocaleString()}</p>
+                                            <p className="text-xs text-gray-500">Payment Amount</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Body Section */}
+                                <div className="p-5">
+                                    {/* Status and Stats Grid */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div className="bg-gray-50 rounded-lg p-3">
+                                            <p className="text-xs text-gray-500 mb-1 font-medium">Status</p>
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(link.status)}`}>
+                                                {getStatusText(link.status)}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="bg-blue-50 rounded-lg p-3">
+                                            <p className="text-xs text-blue-600 mb-1 font-medium flex items-center gap-1">
+                                                <FiEye size={12} /> Views
+                                            </p>
+                                            <p className="text-xl font-bold text-blue-700">{link.view_count || 0}</p>
+                                        </div>
+                                        
+                                        <div className="bg-green-50 rounded-lg p-3">
+                                            <p className="text-xs text-green-600 mb-1 font-medium flex items-center gap-1">
+                                                <FiExternalLink size={12} /> Clicks
+                                            </p>
+                                            <p className="text-xl font-bold text-green-700">{link.click_count || 0}</p>
+                                        </div>
+                                        
+                                        <div className={`rounded-lg p-3 ${isExpired ? 'bg-red-50' : isExpiringSoon ? 'bg-yellow-50' : 'bg-purple-50'}`}>
+                                            <p className={`text-xs mb-1 font-medium flex items-center gap-1 ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-700' : 'text-purple-600'}`}>
+                                                <FiCalendar size={12} /> Expiry
+                                            </p>
+                                            <p className={`text-sm font-bold ${isExpired ? 'text-red-700' : isExpiringSoon ? 'text-yellow-700' : 'text-purple-700'}`}>
+                                                {isExpired ? 'Expired' : isExpiringSoon ? `${daysUntilExpiry}d left` : new Date(link.expires_at).toLocaleDateString()}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                                        <div>
-                                            <p className="text-xs text-gray-400">Amount</p>
-                                            <p className="text-sm font-bold text-gray-900">${parseFloat(link.amount || 0).toLocaleString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Status</p>
-                                            <span className={`badge ${getStatusBadge(link.status)} text-xs`}>{link.status}</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Views / Clicks</p>
-                                            <p className="text-sm font-semibold text-gray-700">{link.view_count || 0} / {link.click_count || 0}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Expires</p>
-                                            <p className="text-sm text-gray-700">{new Date(link.expires_at).toLocaleDateString()}</p>
-                                        </div>
-                                    </div>
-
+                                    {/* Description */}
                                     {link.description && (
-                                        <p className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded-lg">{link.description}</p>
+                                        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                            <p className="text-xs text-gray-500 mb-1 font-medium">Description</p>
+                                            <p className="text-sm text-gray-700">{link.description}</p>
+                                        </div>
                                     )}
 
-                                    <div className="mt-3 flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                                        <FiLink size={14} className="text-blue-600" />
-                                        <code className="text-xs text-blue-700 flex-1 truncate">{link.payment_url || `${window.location.origin}/pay/${link.link_id}`}</code>
-                                        <button
-                                            onClick={() => copyLink(link.payment_url || `${window.location.origin}/pay/${link.link_id}`)}
-                                            className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-600"
-                                        >
-                                            <FiCopy size={14} />
-                                        </button>
-                                        <a
-                                            href={link.payment_url || `${window.location.origin}/pay/${link.link_id}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-600"
-                                        >
-                                            <FiExternalLink size={14} />
-                                        </a>
+                                    {/* Payment Link */}
+                                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+                                        <p className="text-xs text-blue-600 mb-2 font-medium flex items-center gap-1">
+                                            <FiLink size={12} /> Payment Link
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-xs text-blue-700 flex-1 truncate font-mono bg-white px-3 py-2 rounded border border-blue-200">
+                                                {link.payment_url || `${window.location.origin}/pay/${link.payment_link_id}`}
+                                            </code>
+                                            <button
+                                                onClick={() => copyLink(link.payment_url || `${window.location.origin}/pay/${link.payment_link_id}`)}
+                                                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium shadow-sm"
+                                                title="Copy Link"
+                                            >
+                                                <FiCopy size={14} /> Copy
+                                            </button>
+                                            <a
+                                                href={link.payment_url || `${window.location.origin}/pay/${link.payment_link_id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium shadow-sm"
+                                                title="Open Link"
+                                            >
+                                                <FiExternalLink size={14} /> Open
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer Info */}
+                                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                                        <span>Created: {new Date(link.created_at).toLocaleString()}</span>
+                                        {link.created_by_name && <span>By: {link.created_by_name}</span>}
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
@@ -201,7 +279,7 @@ const PaymentLinks = () => {
                     <form onSubmit={handleGenerate} className="space-y-4">
                         <div>
                             <label className="text-xs font-semibold text-gray-500 mb-1 block">Select Debtors *</label>
-                            
+
                             {/* Selected Debtors Display */}
                             {form.debtor_ids.length > 0 && (
                                 <div className="mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
@@ -227,7 +305,7 @@ const PaymentLinks = () => {
                                     </div>
                                 </div>
                             )}
-                            
+
                             {/* Debtor Dropdown */}
                             <select
                                 value=""
@@ -286,6 +364,32 @@ const PaymentLinks = () => {
                                 onChange={e => setForm({ ...form, expires_in_days: e.target.value })}
                                 className="input-field"
                             />
+                        </div>
+
+                        {/* Email and SMS Options */}
+                        <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
+                            <p className="text-xs font-semibold text-gray-700 mb-2">Send Notification</p>
+                            <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.send_email}
+                                        onChange={e => setForm({ ...form, send_email: e.target.checked })}
+                                        className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+                                    />
+                                    <span className="text-sm text-gray-700">Send Email</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.send_sms}
+                                        onChange={e => setForm({ ...form, send_sms: e.target.checked })}
+                                        className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+                                    />
+                                    <span className="text-sm text-gray-700">Send SMS</span>
+                                </label>
+                            </div>
+                            <p className="text-xs text-gray-500">Payment links will be sent to selected debtors via checked channels</p>
                         </div>
 
                         <div className="flex gap-3">

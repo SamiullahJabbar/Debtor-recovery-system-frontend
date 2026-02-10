@@ -11,12 +11,28 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchDashboardData = async () => {
+        try { 
+            const r = await reportService.getDashboardStats(); 
+            setStats(r.data || r); 
+        }
+        catch (e) { 
+            console.error('Dashboard error:', e); 
+        }
+        finally { 
+            setLoading(false); 
+        }
+    };
+
     useEffect(() => {
-        (async () => {
-            try { const r = await reportService.getDashboardStats(); setStats(r.data || r); }
-            catch (e) { console.error('Dashboard error:', e); }
-            finally { setLoading(false); }
-        })();
+        fetchDashboardData();
+        
+        // Auto-refresh every 30 seconds
+        const interval = setInterval(() => {
+            fetchDashboardData();
+        }, 30000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     const cards = stats ? [
@@ -27,7 +43,7 @@ const Dashboard = () => {
         { label: 'Recovery Rate', value: `${stats.recovery_rate || 0}%`, icon: FiCheckCircle, color: 'from-violet-500 to-violet-600', shadow: 'shadow-violet-500/20' },
         { label: 'Total Clients', value: stats.total_clients, icon: FiBriefcase, color: 'from-cyan-500 to-cyan-600', shadow: 'shadow-cyan-500/20' },
         { label: 'Monthly Recovery', value: `$${(stats.monthly_recovery || 0).toLocaleString()}`, icon: FiDollarSign, color: 'from-teal-500 to-teal-600', shadow: 'shadow-teal-500/20' },
-        { label: 'Pending Payments', value: stats.pending_payments || 0, icon: FiAlertCircle, color: 'from-red-500 to-red-600', shadow: 'shadow-red-500/20' },
+        { label: 'Pending Payments', value: `$${(stats.pending_payment_links_amount || 0).toLocaleString()}` , icon: FiAlertCircle, color: 'from-red-500 to-red-600', shadow: 'shadow-red-500/20' },
     ] : [];
 
     const donutData = stats?.status_breakdown ? {

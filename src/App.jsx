@@ -32,6 +32,13 @@ import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import AccountantPayments from './pages/accountant/AccountantPayments';
 import AccountantReports from './pages/accountant/AccountantReports';
 
+// Team Pages
+import TeamPaymentLinks from './pages/team/TeamPaymentLinks';
+
+// Public Pages (No Auth Required)
+import PaymentSuccess from './pages/public/PaymentSuccess';
+import PaymentCancel from './pages/public/PaymentCancel';
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { isAuthenticated, user, loading } = useAuth();
 
@@ -76,6 +83,8 @@ const App = () => (
                 {/* Public Routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify-otp" element={<OTPVerification />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />
@@ -94,6 +103,7 @@ const App = () => (
                 <Route path="/team/debtors" element={<ProtectedRoute allowedRoles={['team_member']}><TeamDebtors /></ProtectedRoute>} />
                 <Route path="/team/global-debtors" element={<ProtectedRoute allowedRoles={['team_member']}><GlobalDebtors /></ProtectedRoute>} />
                 <Route path="/team/payments" element={<ProtectedRoute allowedRoles={['team_member']}><TeamPayments /></ProtectedRoute>} />
+                <Route path="/team/payment-links" element={<ProtectedRoute allowedRoles={['team_member']}><TeamPaymentLinks /></ProtectedRoute>} />
                 <Route path="/team/profile" element={<ProtectedRoute allowedRoles={['team_member']}><TeamProfile /></ProtectedRoute>} />
 
                 {/* Accountant Routes */}

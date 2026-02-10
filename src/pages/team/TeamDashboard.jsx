@@ -14,6 +14,17 @@ const TeamDashboard = () => {
 
     useEffect(() => {
         fetchData();
+        
+        // Auto-refresh every 10 seconds to show quicker payment updates
+        const interval = setInterval(() => {
+            fetchData();
+        }, 10000);
+        
+        // Also refresh when tab becomes visible again
+        const handleVisibility = () => { if (!document.hidden) fetchData(); };
+        document.addEventListener('visibilitychange', handleVisibility);
+        
+        return () => { clearInterval(interval); document.removeEventListener('visibilitychange', handleVisibility); };
     }, []);
 
     const fetchData = async () => {
@@ -50,11 +61,12 @@ const TeamDashboard = () => {
     return (
         <Layout>
             {/* Header */}
-            <div className="page-header mb-6">
+            <div className="page-header mb-6 flex items-center justify-between">
                 <div>
                     <h1 className="page-title">My Dashboard</h1>
                     <p className="page-subtitle">Welcome back! Here's your performance overview</p>
                 </div>
+                <button onClick={fetchData} className="btn-ghost btn-sm">Refresh Now</button>
             </div>
 
             {/* Stats Cards */}

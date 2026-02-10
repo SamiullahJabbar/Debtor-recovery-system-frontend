@@ -11,6 +11,7 @@ const PaymentManagement = () => {
     const [summary, setSummary] = useState({});
 
     useEffect(() => { fetch(); }, [filter]);
+    useEffect(() => { const i=setInterval(fetch,30000); return ()=>clearInterval(i); }, []);
     const fetch = async () => { try { const r = await paymentService.getPaymentRequests({status:filter||undefined,page_size:100}); setPayments(r.results||[]); setSummary(r.summary||{}); } catch{toast.error('Failed');} finally{setLoading(false);} };
 
     const verify = async (id, action, reason='') => { try { await paymentService.verifyPayment(id, {action,reason,notes:reason}); toast.success(action==='approve'?'Approved!':'Rejected'); fetch(); } catch{toast.error('Failed');} };

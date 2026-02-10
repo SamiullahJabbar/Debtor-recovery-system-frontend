@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiHome, FiUsers, FiUserCheck, FiBriefcase, FiDollarSign, FiBarChart2, FiLogOut, FiMenu, FiX, FiChevronRight, FiMail } from 'react-icons/fi';
+import { FiHome, FiUsers, FiUserCheck, FiBriefcase, FiDollarSign, FiBarChart2, FiLogOut, FiMenu, FiX, FiChevronRight, FiMail, FiLink } from 'react-icons/fi';
 
 const Sidebar = () => {
     const location = useLocation();
@@ -29,6 +29,7 @@ const Sidebar = () => {
             { path: '/team/debtors', icon: FiUsers, label: 'My Debtors' },
             { path: '/team/global-debtors', icon: FiUserCheck, label: 'All Debtors' },
             { path: '/team/payments', icon: FiDollarSign, label: 'Payments' },
+            { path: '/team/payment-links', icon: FiLink, label: 'Payment Links' },
         ],
         accountant: [
             { path: '/accountant/dashboard', icon: FiHome, label: 'Dashboard' },
